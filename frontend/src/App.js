@@ -13,7 +13,7 @@ function App() {
     if (!topic) return alert("Please enter a prompt or topic");
 
     try {
-      const res = await fetch("http://localhost:5000/api/generate", {
+      const res = await fetch("https://ai-infographics-for-research-methodology.onrender.com/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // 2. Pass the 'topic' dynamically into the prompt
