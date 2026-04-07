@@ -1,77 +1,91 @@
-import React, { useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import Toolbar from "./Toolbar";
 
 function Workspace({ blocks, setBlocks }) {
   const workspaceRef = useRef(null);
+  const [selected, setSelected] = useState(null);
 
-  useEffect(() => {
-    const workspace = workspaceRef.current;
-    const blockElems = workspace.querySelectorAll(".block");
+  // 🧩 Select block
+  const handleSelect = (index) => {
+    setSelected(index);
+  };
 
-    blockElems.forEach((block) => {
-      block.draggable = true;
+  // ❌ Delete block
+  const deleteBlock = () => {
+    if (selected === null) return;
+    const updated = blocks.filter((_, i) => i !== selected);
+    setBlocks(updated);
+    setSelected(null);
+  };
 
-      block.addEventListener("dragstart", (e) => {
-        block.classList.add("dragging");
-        block.dataset.offsetX = e.offsetX;
-        block.dataset.offsetY = e.offsetY;
-      });
-
-      block.addEventListener("dragend", (e) => {
-        const offsetX = parseInt(block.dataset.offsetX);
-        const offsetY = parseInt(block.dataset.offsetY);
-
-        block.style.position = "absolute";
-        block.style.left = e.pageX - workspace.offsetLeft - offsetX + "px";
-        block.style.top = e.pageY - workspace.offsetTop - offsetY + "px";
-        block.classList.remove("dragging");
-      });
-    });
-  }, [blocks]);
-
+  // ✏️ Edit text
   const handleBlur = (index, e) => {
-    const newBlocks = [...blocks];
-    newBlocks[index] = e.target.innerText;
-    setBlocks(newBlocks);
+    const updated = [...blocks];
+    updated[index] = e.target.innerText;
+    setBlocks(updated);
   };
 
-  const exportAsImage = () => {
-    html2canvas(workspaceRef.current).then((canvas) => {
-      const link = document.createElement("a");
-      link.download = "infographic.png";
-      link.href = canvas.toDataURL();
-      link.click();
-    });
+  // 📥 Export (clean)
+  const exportImage = async () => {
+    const el = workspaceRef.current;
+
+    el.style.background = "#fff";
+
+    const canvas = await html2canvas(el, { scale: 2 });
+    const link = document.createElement("a");
+    link.download = "infographic.png";
+    link.href = canvas.toDataURL();
+    link.click();
+
+    el.style.background = "";
   };
 
-  const exportAsPDF = () => {
-    html2canvas(workspaceRef.current).then((canvas) => {
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF();
-      pdf.addImage(imgData, "PNG", 10, 10, 190, 0);
-      pdf.save("infographic.pdf");
-    });
+  const exportPDF = async () => {
+    const el = workspaceRef.current;
+
+    el.style.background = "#fff";
+
+    const canvas = await html2canvas(el, { scale: 2 });
+    const img = canvas.toDataURL();
+
+    const pdf = new jsPDF();
+    pdf.addImage(img, "PNG", 10, 10, 190, 0);
+    pdf.save("infographic.pdf");
+
+    el.style.background = "";
   };
 
   return (
     <>
+      <Toolbar selectedBlock={selected} deleteBlock={deleteBlock} />
+
       <div className="workspace" ref={workspaceRef}>
+        {blocks.length === 0 && (
+          <div className="empty">
+            <h2>✨ Start Creating</h2>
+            <p>Enter a topic and generate AI blocks</p>
+          </div>
+        )}
+
         {blocks.map((text, i) => (
           <div
             key={i}
-            className="block"
+            className={`block ${selected === i ? "selected" : ""}`}
             contentEditable
-            suppressContentEditableWarning={true} // 🔹 This removes the warning
+            suppressContentEditableWarning
+            onClick={() => handleSelect(i)}
             onBlur={(e) => handleBlur(i, e)}
           >
             {text}
           </div>
         ))}
       </div>
+
       <div className="export-buttons">
-        <button onClick={exportAsImage}>📥 Export PNG</button>
-        <button onClick={exportAsPDF}>📄 Export PDF</button>
+        <button onClick={exportImage}>📥 PNG</button>
+        <button onClick={exportPDF}>📄 PDF</button>
       </div>
     </>
   );
