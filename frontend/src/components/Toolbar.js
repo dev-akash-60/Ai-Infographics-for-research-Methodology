@@ -1,21 +1,15 @@
-import React, { useState } from "react";
+import React from "react";
 
-function Topbar({ generateBlocks, toggleSidebar }) {
-  const [topic, setTopic] = useState("");
+function Toolbar({ selectedBlock, deleteBlock }) {
+  if (!selectedBlock) return null;
 
   return (
-    <div className="topbar">
-      <button className="menu-btn" onClick={toggleSidebar}>☰</button>
-
-      <input
-        placeholder="Enter topic..."
-        value={topic}
-        onChange={(e) => setTopic(e.target.value)}
-      />
-
-      <button onClick={() => generateBlocks(topic)}>✨</button>
+    <div className="toolbar">
+      <button onClick={deleteBlock}>🗑 Delete</button>
+      <button>🎨 Style</button>
+      <button>📏 Resize</button>
     </div>
   );
 }
 
-export default Topbar;
+export default Toolbar;
