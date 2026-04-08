@@ -9,7 +9,7 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const generateBlocks = async (topic) => {
-    const res = await fetch("http://localhost:5000/api/generate", {
+    const res = await fetch("https://ai-infographics-for-research-methodology.onrender.com/api/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
